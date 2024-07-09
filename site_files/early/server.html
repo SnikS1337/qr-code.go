@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Scanner Server</title>
+</head>
+<body>
+    <p class="scaner_decode"></p>
+
+    <script>
+            const ws = new WebSocket("ws://192.168.1.68:8080/ws");
+            const scaner_decode = document.querySelector(".scaner_decode");
+            ws.onmessage = function(event) {
+                scaner_decode.innerHTML = event.data;
+            }
+    </script>
+</body>
+</html>

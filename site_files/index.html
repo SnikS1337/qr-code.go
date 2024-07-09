@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Scanner Client</title>
+    <style>
+        #qr-video {
+            width: 520px;
+            height: 440px;
+        }
+    </style>
+</head>
+<body>
+<div id="video-container">
+    <video id="qr-video"></video>
+</div>
+
+<br>
+<b>Detected QR code: </b>
+<span id="cam-qr-result">None</span>
+<br>
+
+<p class="scaner_decode"></p>
+
+<script src="https://studmok.ru/assets/js/qr-scanner.umd.min.js"></script>
+<script>
+    const video = document.getElementById('qr-video');
+    const camQrResult = document.getElementById('cam-qr-result');
+    const videoContainer = document.getElementById('video-container');
+
+    function setResult(label, result) {
+        console.log(result.data);
+        label.textContent = result.data;
+        camQrResultTimestamp.textContent = new Date().toString();
+        label.style.color = 'teal';
+        clearTimeout(label.highlightTimeout);
+        label.highlightTimeout = setTimeout(() => label.style.color = 'inherit', 100);
+
+        // Send the QR code data to the server via WebSocket
+        const socket = new WebSocket("ws://" + window.location.host + "/echo");
+        socket.onopen = function() {
+            socket.send(result.data);
+        };
+        socket.onerror = function(error) {
+            console.error("WebSocket error:", error);
+        };
+    }
+
+    // ####### Web Cam Scanning #######
+
+    const scanner = new QrScanner(video, result => setResult(camQrResult, result), {
+        onDecodeError: error => {
+            camQrResult.textContent = error;
+            camQrResult.style.color = 'inherit';
+        },
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
+    });
+
+    scanner.start().catch(error => {
+        console.error('Error starting QR scanner:', error);
+        alert('Запрос к камере был отклонен. Пожалуйста, разрешите доступ к камере.');
+    });
+
+    // New WebSocket connection to display server messages
+    const ws = new WebSocket("ws://" + window.location.host + "/echo");
+    const scaner_decode = document.querySelector(".scaner_decode");
+    ws.onmessage = function(event) {
+        scaner_decode.innerHTML = event.data;
+    }
+</script>
+</body>
+</html>
