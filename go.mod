@@ -1,4 +1,4 @@
-module QR_CODE_GO
+module qr-code.go
 
 go 1.22.0
 
